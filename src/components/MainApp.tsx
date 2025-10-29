@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAccount } from 'wagmi';
-import { Wallet, Globe } from 'lucide-react';
+import { Wallet } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { WalletConnection } from './WalletConnection';
 import { Registration } from './Registration';
@@ -9,7 +9,7 @@ import { Leaderboards } from './Leaderboards';
 import { MetaMaskWarning } from './MetaMaskWarning';
 
 export const MainApp: React.FC = () => {
-  const { isConnected, address } = useAccount();
+  const { isConnected } = useAccount();
 
   return (
     <div className="min-h-screen">
