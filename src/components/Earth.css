@@ -1,0 +1,239 @@
+.earth-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 500px;
+  height: 500px;
+  margin: 2rem auto;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.planet-container {
+  border-radius: 50%;
+  box-shadow: 5px -3px 10px 3px #5e90f1, 
+              0 0 40px rgba(94, 144, 241, 0.3),
+              0 0 80px rgba(94, 144, 241, 0.2);
+  height: 500px;
+  overflow: hidden;
+  position: relative;
+  width: 500px;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.earth-wrapper:hover .planet-container {
+  box-shadow: 8px -5px 15px 5px #5e90f1, 
+              0 0 60px rgba(94, 144, 241, 0.5),
+              0 0 100px rgba(94, 144, 241, 0.3);
+  transform: scale(1.05);
+}
+
+.night {
+  animation: rotate-night 80s linear infinite;
+  background-image: url(https://www.solarsystemscope.com/textures/download/2k_earth_nightmap.jpg);
+  background-size: 200%;
+  height: 500px;
+  position: absolute;
+  width: 500px;
+  z-index: 2;
+}
+
+.day {
+  animation: rotate-day 80s linear infinite;
+  background-image: url(https://www.solarsystemscope.com/textures/download/2k_earth_daymap.jpg);
+  background-size: 200%;
+  border-left: solid 1px black;
+  border-radius: 50%;
+  box-shadow: 5px 0 20px 10px #040615 inset;
+  height: 500px;
+  margin-left: 110px;
+  position: absolute;
+  width: 500px;
+  z-index: 3;
+}
+
+.clouds {
+  animation: rotate-day 50s linear infinite, spin-clouds 100s ease infinite;
+  background-image: url(https://www.solarsystemscope.com/textures/download/2k_earth_clouds.jpg);
+  background-size: 200%;
+  border-radius: 50%;
+  box-shadow: 5px 0 20px 10px #040615 inset, -9px 0px 20px 10px #5e90f1 inset;
+  height: 500px;
+  margin-left: 100px;
+  opacity: 0.45;
+  position: absolute;
+  width: 500px;
+  z-index: 4;
+}
+
+.inner-shadow {
+  background: transparent;
+  border-radius: 50%;
+  box-shadow: -5px 0 10px 1px #152b57 inset, 5px 0 10px 1px #040615 inset;
+  height: 500px;
+  margin-left: 0;
+  position: absolute;
+  width: 500px;
+  z-index: 5;
+}
+
+
+.click-flash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(94, 144, 241, 0.4) 0%, transparent 70%);
+  z-index: 6;
+  pointer-events: none;
+}
+
+.click-particle {
+  position: absolute;
+  color: #5e90f1;
+  font-weight: bold;
+  font-size: 1.2rem;
+  pointer-events: none;
+  z-index: 20;
+  text-shadow: 0 0 10px rgba(94, 144, 241, 0.8), 0 0 20px rgba(94, 144, 241, 0.6);
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.click-particle .earth-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(94, 144, 241, 0.8));
+  mix-blend-mode: multiply;
+  background: transparent;
+}
+
+.dark .click-particle .earth-icon {
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 15px rgba(123, 163, 245, 1));
+}
+
+.dark .click-particle {
+  color: #7ba3f5;
+  text-shadow: 0 0 15px rgba(123, 163, 245, 1), 0 0 25px rgba(123, 163, 245, 0.8);
+}
+
+
+@keyframes rotate-day {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -80% 0;
+  }
+}
+
+@keyframes rotate-night {
+  0% {
+    background-position: calc(120% + 120px) 0;
+  }
+  100% {
+    background-position: calc(-80% + 120px) 0;
+  }
+}
+
+@keyframes spin-clouds {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(20deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateX(-50%) scale(1.05);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .earth-wrapper {
+    width: 300px;
+    height: 300px;
+    margin: 1rem auto;
+  }
+
+  .planet-container {
+    width: 300px;
+    height: 300px;
+  }
+
+  .night,
+  .day,
+  .clouds,
+  .inner-shadow {
+    width: 300px;
+    height: 300px;
+  }
+
+  .day {
+    margin-left: 66px;
+  }
+
+  .clouds {
+    margin-left: 60px;
+  }
+
+  .click-particle .earth-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .earth-wrapper {
+    width: 250px;
+    height: 250px;
+  }
+
+  .planet-container {
+    width: 250px;
+    height: 250px;
+  }
+
+  .night,
+  .day,
+  .clouds,
+  .inner-shadow {
+    width: 250px;
+    height: 250px;
+  }
+
+  .day {
+    margin-left: 55px;
+  }
+
+  .clouds {
+    margin-left: 50px;
+  }
+
+  .click-particle .earth-icon {
+    width: 18px;
+    height: 18px;
+  }
+}
+
