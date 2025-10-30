@@ -9,7 +9,11 @@ export const config = createConfig({
   chains: [sovaChain],
   connectors: [metaMask()],
   transports: {
-    [sovaChain.id]: http('/api/rpc'),
+    [sovaChain.id]: http(
+      typeof window !== 'undefined' && window.location.hostname === 'localhost'
+        ? '/api/rpc' // Use Vite proxy in dev
+        : '/api/rpc' // Use Vercel serverless function in production
+    ),
   },
 });
 
