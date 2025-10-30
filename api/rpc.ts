@@ -1,4 +1,16 @@
-export default async function handler(req: any, res: any) {
+type VercelRequest = {
+  method?: string;
+  body?: any;
+};
+
+type VercelResponse = {
+  setHeader: (name: string, value: string) => void;
+  status: (code: number) => VercelResponse;
+  json: (data: any) => void;
+  end: () => void;
+};
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,7 +35,7 @@ export default async function handler(req: any, res: any) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(req.body),
+      body: JSON.stringify(req.body || {}),
     });
 
     const data = await response.json();
