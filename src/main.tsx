@@ -11,8 +11,8 @@ import './index.css';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 30, // 30 seconds
-      refetchOnWindowFocus: false, // Disable auto-refetch on focus for better performance
+      staleTime: 1000 * 15, // 15 seconds - reduce for better reactivity
+      refetchOnWindowFocus: true, // Enable refetch on focus to catch updates
       refetchOnMount: true,
       refetchOnReconnect: true,
       retry: (failureCount, error: any) => {
@@ -23,6 +23,9 @@ const queryClient = new QueryClient({
         return failureCount < 2; // Reduce retry attempts
       },
       gcTime: 1000 * 60 * 5, // 5 minutes garbage collection
+    },
+    mutations: {
+      retry: false, // Don't retry mutations
     },
   },
 });

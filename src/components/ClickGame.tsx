@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react';
 import { useAccount, useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
 import { useBalance } from 'wagmi';
+import { useQueryClient } from '@tanstack/react-query';
 import { Rocket, Coins } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -9,17 +10,20 @@ import { formatEther } from 'viem';
 import { Earth } from './Earth';
 
 export const ClickGame: React.FC = memo(() => {
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const [clickCount, setClickCount] = useState(0);
   const [pendingPoints, setPendingPoints] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
   
-  const { writeContract } = useWriteContract();
-  const { data: hash } = useWriteContract();
+  const { writeContract, data: hash } = useWriteContract();
   const { data: ethBalance } = useBalance({ address });
   
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
+    query: {
+      enabled: !!hash,
+    },
   });
 
   // Get user info
@@ -29,11 +33,21 @@ export const ClickGame: React.FC = memo(() => {
     functionName: 'getUserInfo',
     args: address ? [address] : undefined,
     query: {
-      enabled: !!address,
-      refetchInterval: 30000, // Refetch every 30s instead of on focus
-      staleTime: 15000,
+      enabled: !!address && isConnected,
+      refetchInterval: 30000, // Refetch every 30s
+      staleTime: 5000, // Reduce stale time for faster updates
     },
   });
+
+  // Refetch when address changes (wallet connect/disconnect)
+  useEffect(() => {
+    if (address && isConnected) {
+      refetch();
+      queryClient.invalidateQueries({
+        queryKey: ['readContract'],
+      });
+    }
+  }, [address, isConnected, refetch, queryClient]);
 
   const [isClicking, setIsClicking] = useState(false);
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -78,10 +92,10 @@ export const ClickGame: React.FC = memo(() => {
         args: [BigInt(pendingPoints)],
         value: SUBMIT_FEE,
       });
-      toast.success(`Submitting ${pendingPoints.toLocaleString()} EARTH tokens...`);
-    } catch (error) {
+      toast.success(`Transaction sent! Submitting ${pendingPoints.toLocaleString()} EARTH tokens...`);
+    } catch (error: any) {
       console.error('Submit failed:', error);
-      toast.error('Submit failed. Please try again.');
+      toast.error(error?.shortMessage || 'Submit failed. Please try again.');
       setIsSubmitting(false);
     }
   };
@@ -92,9 +106,13 @@ export const ClickGame: React.FC = memo(() => {
       setPendingPoints(0);
       setClickCount(0);
       refetch();
+      // Invalidate all contract queries to refresh leaderboards too
+      queryClient.invalidateQueries({
+        queryKey: ['readContract'],
+      });
       setIsSubmitting(false);
     }
-  }, [isConfirmed, refetch]);
+  }, [isConfirmed, refetch, queryClient]);
 
   const totalPoints = useMemo(() => userData?.[2] ? Number(userData[2]) : 0, [userData]);
   const hasPending = useMemo(() => pendingPoints > 0, [pendingPoints]);

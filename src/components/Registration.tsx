@@ -1,17 +1,26 @@
-import React, { useState, useMemo, memo, useCallback } from 'react';
-import { useAccount, useWriteContract, useReadContract } from 'wagmi';
+import React, { useState, useMemo, memo, useCallback, useEffect } from 'react';
+import { useAccount, useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useQueryClient } from '@tanstack/react-query';
 import { UserPlus, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { CONTRACT_ADDRESS, EARTH_CLICK_ABI, COUNTRIES } from '../config/constants';
 
 export const Registration: React.FC = memo(() => {
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const [username, setUsername] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
+  const queryClient = useQueryClient();
   
-  const { writeContract } = useWriteContract();
+  const { writeContract, data: hash } = useWriteContract();
+  
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+    query: {
+      enabled: !!hash,
+    },
+  });
   
   // Check if already registered
   const { data: userData, refetch } = useReadContract({
@@ -20,10 +29,33 @@ export const Registration: React.FC = memo(() => {
     functionName: 'getUserInfo',
     args: address ? [address] : undefined,
     query: { 
-      enabled: !!address,
-      staleTime: 30000,
+      enabled: !!address && isConnected,
+      staleTime: 5000, // Reduce stale time for faster updates
+      refetchInterval: 30000, // Refetch every 30s
     },
   });
+
+  // Refetch when address changes (wallet connect/disconnect)
+  useEffect(() => {
+    if (address && isConnected) {
+      refetch();
+      // Invalidate all contract queries
+      queryClient.invalidateQueries({
+        queryKey: ['readContract'],
+      });
+    }
+  }, [address, isConnected, refetch, queryClient]);
+
+  // Refetch after successful registration
+  useEffect(() => {
+    if (isConfirmed) {
+      refetch();
+      queryClient.invalidateQueries({
+        queryKey: ['readContract'],
+      });
+      setIsRegistering(false);
+    }
+  }, [isConfirmed, refetch, queryClient]);
 
   // Check if user is registered by checking if username is not empty
   const isRegistered = useMemo(() => 
@@ -49,15 +81,13 @@ export const Registration: React.FC = memo(() => {
         functionName: 'register',
         args: [username.trim(), selectedCountry],
       });
-      toast.success('Registration successful!');
-      setTimeout(() => refetch(), 2000);
-    } catch (error) {
+      toast.success('Transaction sent! Waiting for confirmation...');
+    } catch (error: any) {
       console.error('Registration failed:', error);
-      toast.error('Registration failed. Please try again.');
-    } finally {
+      toast.error(error?.shortMessage || 'Registration failed. Please try again.');
       setIsRegistering(false);
     }
-  }, [username, selectedCountry, writeContract, refetch]);
+  }, [username, selectedCountry, writeContract]);
 
   if (isRegistered) {
     return (
@@ -136,13 +166,13 @@ export const Registration: React.FC = memo(() => {
 
         <motion.button
           onClick={handleRegister}
-          disabled={isRegistering || !username.trim() || !selectedCountry}
+          disabled={isRegistering || isConfirming || !username.trim() || !selectedCountry}
           className="w-full btn-primary flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          whileHover={{ scale: isRegistering ? 1 : 1.02 }}
-          whileTap={{ scale: isRegistering ? 1 : 0.98 }}
+          whileHover={{ scale: (isRegistering || isConfirming) ? 1 : 1.02 }}
+          whileTap={{ scale: (isRegistering || isConfirming) ? 1 : 0.98 }}
         >
           <UserPlus className="w-5 h-5" />
-          {isRegistering ? 'Registering...' : 'Register'}
+          {isConfirming ? 'Confirming...' : isRegistering ? 'Registering...' : 'Register'}
         </motion.button>
       </div>
     </motion.div>
