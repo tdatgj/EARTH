@@ -57,6 +57,29 @@ Sova Testnet (Chain ID: 120893)
 - RPC: https://rpc.testnet.sova.io
 - Explorer: https://explorer.testnet.sova.io
 
+## 📊 Analytics
+
+### Vercel Analytics
+Vercel Analytics is automatically enabled and will track page views and performance metrics when deployed on Vercel. No configuration needed!
+
+### Google Analytics (Optional)
+To enable Google Analytics:
+
+1. Get your GA4 Measurement ID from [Google Analytics](https://analytics.google.com/)
+2. Open `index.html`
+3. Uncomment the Google Analytics script block
+4. Replace `G-XXXXXXXXXX` with your actual Measurement ID
+
+```html
+<script async src="https://www.googletagmanager.com/gtag/js?id=YOUR-GA4-ID"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'YOUR-GA4-ID');
+</script>
+```
+
 ## 📄 License
 
 MIT
